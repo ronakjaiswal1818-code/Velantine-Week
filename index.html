@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>For My Future Wife</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --gold: #c5a059; --glass: rgba(255, 255, 255, 0.05); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; background: #000; font-family: 'Poppins', sans-serif; color: white; overflow-x: hidden; width: 100%; height: 100%; }
+
+        /* Floating Hearts Background */
+        #canvas-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: 1s ease;
+        }
+        .lock-card { text-align: center; padding: 30px; border: 1px solid var(--gold); border-radius: 30px; background: rgba(255,255,255,0.02); width: 85%; max-width: 350px; }
+        
+        #pass { 
+            background: rgba(255,255,255,0.1); border: 1px solid var(--gold); border-radius: 15px;
+            color: white; text-align: center; font-size: 2rem; outline: none; width: 180px; 
+            margin: 20px 0; letter-spacing: 8px; padding: 10px; -webkit-appearance: none;
+        }
+
+        /* --- DASHBOARD --- */
+        .dashboard { position: relative; z-index: 10; min-height: 100vh; display: none; flex-direction: column; align-items: center; padding: 40px 20px; animation: fadeIn 1.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .hero-text { text-align: center; margin-bottom: 30px; }
+        .hero-text h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.2rem; margin: 0; }
+        
+        .grid-menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 400px; }
+        .grid-item {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
+            height: 110px; border-radius: 20px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; cursor: pointer; transition: 0.3s;
+        }
+        .grid-item:active { transform: scale(0.95); background: rgba(197, 160, 89, 0.1); }
+        .grid-item.special { grid-column: span 2; height: 130px; border: 1px solid var(--gold); background: rgba(197, 160, 89, 0.05); }
+        .grid-item span { font-size: 1.8rem; }
+        .grid-item small { color: var(--gold); font-size: 0.65rem; letter-spacing: 2px; margin-top: 8px; text-transform: uppercase; font-weight: 600; }
+
+        /* --- THEATER MODE (POPUP) --- */
+        #theater {
+            position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.98);
+            display: none; flex-direction: column; align-items: center;
+            padding: 60px 20px 40px; text-align: center; overflow-y: auto;
+        }
+        .close-theater { position: fixed; top: 20px; right: 25px; font-size: 2.8rem; color: var(--gold); background: none; border: none; z-index: 2100; }
+        
+        .memory-media {
+            width: 100%; border-radius: 20px; border: 1px solid var(--gold);
+            margin: 20px 0; max-height: 350px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .letter-paper {
+            background: #fdfaf3; color: #1a1a1a; padding: 30px;
+            border-radius: 5px; font-family: 'Dancing Script', cursive;
+            font-size: 1.4rem; line-height: 1.6; text-align: left;
+            border-left: 6px solid var(--gold); margin-top: 20px;
+        }
+
+        .patience-msg { padding: 50px 20px; border: 1px dashed var(--gold); border-radius: 25px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas-particles"></canvas>
+<audio id="main-track" loop playsinline webkit-playsinline></audio>
+
+<div id="auth-overlay">
+    <div class="lock-card">
+        <h2 style="font-family:'Playfair Display'; color:var(--gold); margin:0;">Locked for Wifey</h2>
+        <p style="font-size: 0.6rem; letter-spacing: 2px; opacity: 0.7; margin-top: 10px;">ENTER OUR MEETING DATE (DDMM)</p>
+        <input type="password" id="pass" placeholder="••••" maxlength="4" pattern="\d*" inputmode="numeric" oninput="checkPass(this)">
+        <p id="error-msg" style="color: #ff4d4d; font-size: 0.7rem; margin-top: 10px; opacity: 0;"></p>
+    </div>
+</div>
+
+<div class="dashboard" id="ui">
+    <div class="hero-text">
+        <p style="letter-spacing: 4px; font-size: 0.6rem; opacity: 0.6; margin-bottom: 5px;">ESTABLISHED MAY 2022</p>
+        <h1>For My Wifu</h1>
+    </div>
+    <div class="grid-menu" id="menu"></div>
+</div>
+
+<div id="theater">
+    <button class="close-theater" onclick="closeDay()">&times;</button>
+    <div id="t-content" style="width:100%; max-width:400px;"></div>
+</div>
+
+<script>
+    // --- DATABASE WITH INDIVIDUAL SONGS ---
+    const days = [
+        { d: 7, n: "Rose Day", i: "🌹", p: "🌹", msg: "Happy Rose Day betu, haa mai itna khass toh nahi hu fool hu prr kya aap mera fhul accept karoge, humesha khush rakhne ki koshish karunga, haa thoda ghussa wala insaan hu prr khayal bhi utna hi rakhunga aapka 🥺❤️", media: "Rose.mp4.mp4", type: "video", song: "Perfect.mp3" },
+        { d: 8, n: "Propose Day", i: "💍", p: "💍", msg: "I'd ask a million times, and I'd hope for a million 'Yes's.", media: "Ring.mp4", type: "video", song: "ProposeDay.mp3" },
+        { d: 9, n: "Chocolate Day", i: "🍫", p: "🍫", msg: "Life with you is a sweetness I never want to end.", media: "chocolate_us.jpg", type: "img", song: "ChocolateDay.mp3" },
+        { d: 10, n: "Teddy Day", i: "🧸", p: "🧸", msg: "Soft, warm, and always there for you. Just like me.", media: "Teddy.jpg", type: "img", song: "TeddyDay.mp3" },
+        { d: 11, n: "Promise Day", i: "🤝", p: "✨", msg: "I promise to be your home, no matter where we are.", media: "Promise.jpg", type: "img", song: "PromiseDay.mp3" },
+        { d: 12, n: "Hug Day", i: "🫂", p: "🫂", msg: "The only place where the world finally makes sense.", media: "Hug.jpg", type: "img", song: "HugDay.mp3" },
+        { d: 13, n: "Kiss Day", i: "💋", p: "💋", msg: "A silent language of a thousand emotions.", media: "Kiss.jpg", type: "img", song: "KissDay.mp3" },
+        { d: 14, n: "Valentine's Day", i: "❤️", p: "❤️", msg: "To my future wife: My today, my tomorrow, my forever.", media: "valentine_us.jpg", type: "img", song: "Valentine.mp3" },
+        { d: "Letter", n: "The Final Letter", i: "✉️", p: "🌸", isLetter: true, media: "best_photo_us.jpg", type: "img", song: "Perfect.mp3" }
+    ];
+
+    const audio = document.getElementById('main-track');
+    let currentP = '❤️';
+
+    // --- PASSWORD SYSTEM ---
+    function checkPass(el) {
+        const errorMsg = document.getElementById('error-msg');
+        if(el.value.length === 4) {
+            if(el.value === "2205") { 
+                unlock(); 
+            } else {
+                errorMsg.innerText = "Incorrect date, my love.";
+                errorMsg.style.opacity = "1";
+                setTimeout(() => { el.value = ""; errorMsg.style.opacity = "0"; }, 1000);
+            }
+        }
+    }
+
+    function unlock() {
+        document.getElementById('auth-overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('ui').style.display = 'flex';
+            // iPhone logic: Music MUST start on a click/input
+            audio.src = "Perfect.mp3";
+            audio.play().catch(e => console.log("iPhone silent mode on"));
+        }, 800);
+    }
+
+    // --- GRID GENERATION ---
+    const menu = document.getElementById('menu');
+    days.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `grid-item ${item.isLetter ? 'special' : ''}`;
+        div.innerHTML = `<span>${item.i}</span><small>${item.isLetter ? 'Love Letter' : 'Feb ' + item.d}</small>`;
+        div.onclick = () => openDay(item);
+        menu.appendChild(div);
+    });
+
+    // --- DAY CONTENT LOGIC ---
+    function openDay(item) {
+        const today = new Date();
+        const isFeb = (today.getMonth() === 1); // 1 = February
+        const currentDay = today.getDate();
+
+        // Check if day is locked
+        if (item.d !== "Letter" && (!isFeb || currentDay < item.d)) {
+            showLockedMsg(`Come back on <b>February ${item.d}</b> to unlock this memory Jannu. ❤️`);
+            return;
+        }
+
+        // Change song for the day
+        if(item.song) {
+            audio.src = item.song;
+            audio.play().catch(e => console.log("Music blocked"));
+        }
+
+        currentP = item.p;
+        const theater = document.getElementById('theater');
+        theater.style.display = 'flex';
+
+        let mediaHtml = item.type === 'video' ? 
+            `<video src="${item.media}" class="memory-media" autoplay loop muted playsinline webkit-playsinline></video>` : 
+            `<img src="${item.media}" class="memory-media">`;
+
+        if(item.isLetter) {
+            const isFeb14 = (isFeb && currentDay >= 14);
+            if(isFeb14) {
+                document.getElementById('t-content').innerHTML = `
+                    <h1 style="color:var(--gold); font-family:'Playfair Display';">My Heart to Yours</h1>
+                    ${mediaHtml}
+                    <div class="letter-paper">
+                        Dearest Wifey,<br><br>
+                        Today is the day I get to tell you how much you mean to me... <br><br>
+                        [INSERT YOUR MESSAGE HERE]<br><br>
+                        Yours Forever.
+                    </div>`;
+            } else {
+                showLockedMsg(`Thoda sa wait karo Bubu. <br> Yeah surprise <b>February 14th</b> ko khulega. ❤️`);
+            }
+        } else {
+            document.getElementById('t-content').innerHTML = `
+                <h1 style="color:var(--gold); font-family:'Playfair Display';">${item.n}</h1>
+                ${mediaHtml}
+                <p style="font-size:1.1rem; line-height:1.8; opacity:0.9;">${item.msg}</p>`;
+        }
+    }
+
+    function showLockedMsg(msg) {
+        document.getElementById('theater').style.display = 'flex';
+        document.getElementById('t-content').innerHTML = `
+            <div class="patience-msg">
+                <span style="font-size:3.5rem;">🔒</span>
+                <h2 style="color:var(--gold); font-family:'Playfair Display';">Patience, Wifu!</h2>
+                <p style="opacity:0.8; line-height:1.6;">${msg}</p>
+            </div>`;
+    }
+
+    function closeDay() { 
+        document.getElementById('theater').style.display = 'none'; 
+        audio.src = "Perfect.mp3"; 
+        audio.play();
+        currentP = '❤️'; 
+    }
+
+    // --- HEART PARTICLES ---
+    const canvas = document.getElementById('canvas-particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    class Particle {
+        constructor() { this.reset(); }
+        reset() { this.x = Math.random()*canvas.width; this.y = canvas.height+20; this.s = Math.random()*12+10; this.v = Math.random()*0.8+0.4; }
+        draw() { ctx.globalAlpha = 0.25; ctx.fillStyle = "white"; ctx.font = `${this.s}px Arial`; ctx.fillText(currentP, this.x, this.y); }
+        update() { this.y -= this.v; if(this.y < -20) this.reset(); }
+    }
+    for(let i=0; i<25; i++) particles.push(new Particle());
+    function animate() { ctx.clearRect(0,0,canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+    animate();
+</script>
+</body>
+</html>
