@@ -111,9 +111,8 @@
     ];
 
     const audio = document.getElementById('main-track');
-    let currentP = '❤️'; // Background particle variable
+    let currentP = '❤️'; 
 
-    // --- PASSWORD SYSTEM ---
     function checkPass(el) {
         const errorMsg = document.getElementById('error-msg');
         if(el.value.length === 4) {
@@ -137,7 +136,6 @@
         }, 800);
     }
 
-    // --- GRID GENERATION ---
     const menu = document.getElementById('menu');
     days.forEach(item => {
         const div = document.createElement('div');
@@ -147,8 +145,9 @@
         menu.appendChild(div);
     });
 
-    // --- OPEN DAY LOGIC ---
     function openDay(item) {
+        // --- LOCK PART COMMENTED OUT FOR TESTING ---
+        /*
         const today = new Date();
         const isFeb = (today.getMonth() === 1); 
         const currentDay = today.getDate();
@@ -157,8 +156,8 @@
             showLockedMsg(`Come back on <b>February ${item.d}</b> to unlock this memory Jannu. ❤️`);
             return;
         }
+        */
 
-        // Change Background Particle to Day-Specific Emoji
         currentP = item.p; 
 
         if(item.song) {
@@ -174,19 +173,15 @@
             `<img src="${item.media}" class="memory-media">`;
 
         if(item.isLetter) {
-            const isFeb14 = (isFeb && currentDay >= 14);
-            if(isFeb14) {
-                document.getElementById('t-content').innerHTML = `
-                    <h1 style="color:var(--gold); font-family:'Playfair Display';">My Heart to Yours</h1>
-                    ${mediaHtml}
-                    <div class="letter-paper">
-                        Dearest Wifey,<br><br>
-                        Today is the day... [Write your special message here]<br><br>
-                        Yours Forever.
-                    </div>`;
-            } else {
-                showLockedMsg(`Thoda sa wait karo Bubu. <br> Yeah surprise <b>February 14th</b> ko khulega. ❤️`);
-            }
+            // Letter logic also unlocked
+            document.getElementById('t-content').innerHTML = `
+                <h1 style="color:var(--gold); font-family:'Playfair Display';">My Heart to Yours</h1>
+                ${mediaHtml}
+                <div class="letter-paper">
+                    Dearest Wifey,<br><br>
+                    Today is the day... [Write your special message here]<br><br>
+                    Yours Forever.
+                </div>`;
         } else {
             document.getElementById('t-content').innerHTML = `
                 <h1 style="color:var(--gold); font-family:'Playfair Display';">${item.n}</h1>
@@ -209,10 +204,9 @@
         document.getElementById('theater').style.display = 'none'; 
         audio.src = "Perfect.mp3"; 
         audio.play();
-        currentP = '❤️'; // Reset background back to hearts
+        currentP = '❤️'; 
     }
 
-    // --- ANIMATION ENGINE ---
     const canvas = document.getElementById('canvas-particles');
     const ctx = canvas.getContext('2d');
     let particles = [];
