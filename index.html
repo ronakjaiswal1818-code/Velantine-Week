@@ -13,21 +13,9 @@
 
         #canvas-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
-        /* --- AUTH SCREEN --- */
-        #auth-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 3000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .lock-card { text-align: center; padding: 30px; border: 1px solid var(--gold); border-radius: 30px; background: rgba(255,255,255,0.02); width: 85%; max-width: 350px; }
-        
-        #pass { 
-            background: rgba(255,255,255,0.1); border: 1px solid var(--gold); border-radius: 15px;
-            color: white; text-align: center; font-size: 2rem; outline: none; width: 180px; 
-            margin: 20px 0; letter-spacing: 8px; padding: 10px; -webkit-appearance: none;
-        }
-
         /* --- DASHBOARD --- */
-        .dashboard { position: relative; z-index: 10; min-height: 100vh; display: none; flex-direction: column; align-items: center; padding: 40px 20px; }
+        /* Changed display to flex so it shows immediately */
+        .dashboard { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
         
         .hero-text { text-align: center; margin-bottom: 30px; }
         .hero-text h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.2rem; margin: 0; }
@@ -64,25 +52,14 @@
             border-left: 6px solid var(--gold); margin-bottom: 40px;
         }
 
-        .patience-msg { padding: 50px 20px; border: 1px dashed var(--gold); border-radius: 25px; margin-top: 60px; }
-
         #preload-cache { display: none; }
     </style>
 </head>
-<body>
+<body onload="init()">
 
 <canvas id="canvas-particles"></canvas>
 <audio id="main-track" loop playsinline webkit-playsinline></audio>
 <div id="preload-cache"></div>
-
-<div id="auth-overlay">
-    <div class="lock-card">
-        <h2 style="font-family:'Playfair Display'; color:var(--gold); margin:0;">Locked for Wifey</h2>
-        <p style="font-size: 0.6rem; letter-spacing: 2px; opacity: 0.7; margin-top: 10px;">ENTER OUR MEETING DATE (DDMM)</p>
-        <input type="password" id="pass" placeholder="••••" maxlength="4" pattern="\d*" inputmode="numeric" oninput="checkPass(this)">
-        <p id="error-msg" style="color: #ff4d4d; font-size: 0.7rem; margin-top: 10px; opacity: 0;"></p>
-    </div>
-</div>
 
 <div class="dashboard" id="ui">
     <div class="hero-text">
@@ -99,19 +76,26 @@
 
 <script>
     const days = [
-        { d: 7, n: "Rose Day", i: "🌹", p: "🌹", msg: "Happy Rose Day betu, haa mai itna khass toh nahi hu fool hu prr kya aap mera fhul accept karoge, humesha khush rakhne ki koshish karunga, haa thoda ghussa wala insaan hu prr khayal bhi utna hi rakhunga aapka 🥺❤️", media: "Rose.mp4.mp4", type: "video", song: "Rose.mp3" },
-        { d: 8, n: "Propose Day", i: "💍", p: "💍", msg: "I'd ask a million times, and I'd hope for a million 'Yes's.", media: "Ring.mp4", type: "video", song: "Propose.mp3" },
-        { d: 9, n: "Chocolate Day", i: "🍫", p: "🍫", msg: "Life with you is a sweetness I never want to end.", media: "Choco.jpg", type: "img", song: "Chocolate.mp3" },
-        { d: 10, n: "Teddy Day", i: "🧸", p: "🧸", msg: "Soft, warm, and always there for you. Just like me.", media: "Teddy.jpg", type: "img", song: "Teddy.mp3" },
-        { d: 11, n: "Promise Day", i: "🤝", p: "🤝", msg: "I promise to be your home, no matter where we are.", media: "Promise.jpg", type: "img", song: "Promise.mp3" },
-        { d: 12, n: "Hug Day", i: "🫂", p: "🫂", msg: "The only place where the world finally makes sense.", media: "Hug.jpg", type: "img", song: "Hug.mp3" },
-        { d: 13, n: "Kiss Day", i: "💋", p: "💋", msg: "A silent language of a thousand emotions.", media: "Kiss.jpg", type: "img", song: "Kiss.mp3" },
-        { d: 14, n: "Valentine's Day", i: "❤️", p: "❤️", msg: "To my future wife: My today, my tomorrow, my forever.", media: "Valentine.mp4", type: "video", song: "Velantine.mp3" },
-        { d: "Letter", n: "The Final Letter", i: "✉️", p: "💌", isLetter: true, media: "Us.jpg", type: "img", song: "Perfect.mp3" }
+        { d: 7, n: "Rose Day", i: "🌹", p: "🌹", msg: "Happy Rose Day betu, haa mai itna khass toh nahi hu, fool hu prr kya aap mera fhul accept karoge, humesha khush rakhne ki koshish karunga aapko, haa thoda ghussa wala insaan hu prr khayal bhi utna hi rakhunga aapka pakka. 🥺❤️", media: "Rose.mp4.mp4", type: "video", song: "Rose.mp3" },
+        { d: 8, n: "Propose Day", i: "💍", p: "💍", msg: "Happy Propose Day Jannu, Kya aap mere better half banoge jaise aloo ke bina samosa, chutney ke bina momos, Aur toppings ke bina pizza adhura rehta hai vaise hi aapke bina pura adhura hu wifu, I LOVE YOU SO MUCH WIFU. ♥️😘 ", media: "Ring.mp4", type: "video", song: "Propose.mp3" },
+        { d: 9, n: "Chocolate Day", i: "🍫", p: "🍫", msg: "Happy Chocolate Day Betu, meri life mai aapke aane se itni sweetness aur joyfulness aa gyi hai kya btau, You are the reason of my happiness cutu, Meri pyaari pyaari betu ko happy chocolate day once again. 🤗♥️", media: "Choco.jpg", type: "img", song: "Chocolate.mp3" },
+        { d: 10, n: "Teddy Day", i: "🧸", p: "🧸", msg: "Happy Teddy Day Bubu, Vaise toh mai hu aapka teddy bear soft, clam, stress relief toy jisko aap kuch bhi bol sakte ho, maar sakte ho but maroge nahi kyuki hubby huna aapka. 🤭♥️", media: "Teddy.jpg", type: "img", song: "Teddy.mp3" },
+        { d: 11, n: "Promise Day", i: "🤝", p: "🤝", msg: "I promise betu mai humesha aapke saath rahunga no matter kya situation ho, humesha aapka saath dunga, humesha aapki strength banunga, aur aapki saari wishes puri karunga😘💕 Kyuki aap toh meri jaan hona.♥️🥰 ", media: "Promise.jpg", type: "img", song: "Promise.mp3" },
+        { d: 12, n: "Hug Day", i: "🫂", p: "🫂", msg: "Meri safe place jaha mai sabh kuch bhul jata hu, jaha mera saara ghussa shant ho jta hai, stress kam ho jta hai, itna accha aur relief milta hai na kya btau guess karo aesi konsi jagah hai aapka maiko hug karna and I wish hum aese hi saari conflicts ko hug karke khtm karenge kyuki end mai toh bss hum dono aur humara pyaar hai na. 🤗😙", media: "Hug.jpg", type: "img", song: "Hug.mp3" },
+        { d: 13, n: "Kiss Day", i: "💋", p: "💋", msg: "Ekh aesi chiz hai puchhi jisko hum kabhi bhi kare humesha aesa lagta hai jaise fist time ho, Itni pucchi ke baad bhi humesha maiko pucchi ka wait rehta hai itna magic hai aapki pucchi ka, Happy Pucchi Day Wifu. 😘💕", media: "Kiss.jpg", type: "img", song: "Kiss.mp3" },
+        { d: 14, n: "Valentine's Day", i: "❤️", p: "❤️", msg: "To my future wifey: My today, my tomorrow, my forever.♥️🥹 Aur spcial surprise lette m hai", media: "Us.jpg", type: "img", song: "Perfect.mp3" },
+        { d: "Letter", n: "The Final Letter", i: "✉️", p: "💌", isLetter: true, media: "Valentine.mp4", type: "video", song: "Velantine.mp3" }
     ];
 
     const audio = document.getElementById('main-track');
     let currentP = '❤️'; 
+
+    // Function to run on page load
+    function init() {
+        startPreload();
+        audio.src = "Perfect.mp3";
+        // Note: Autoplay might be blocked by browsers until user interacts with the page
+    }
 
     function startPreload() {
         const cache = document.getElementById('preload-cache');
@@ -128,16 +112,6 @@
         });
     }
 
-    function checkPass(el) {
-        if(el.value === "2205") { 
-            startPreload();
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('ui').style.display = 'flex';
-            audio.src = "Perfect.mp3";
-            audio.play().catch(e => {});
-        }
-    }
-
     const menu = document.getElementById('menu');
     days.forEach(item => {
         const div = document.createElement('div');
@@ -148,25 +122,11 @@
     });
 
     function openDay(item) {
-        const today = new Date();
-        const isFeb = (today.getMonth() === 1); 
-        const currentDay = today.getDate();
-
-        // --- DATE LOCKING LOGIC ---
-        if (item.d !== "Letter" && (!isFeb || currentDay < item.d)) {
-            showLockedMsg(`Come back on <b>February ${item.d}</b> to unlock this memory Jannu. ❤️`);
-            return;
-        }
-
-        if (item.isLetter && (!isFeb || currentDay < 14)) {
-            showLockedMsg(`Thoda sa wait karo Bubu. <br> Yeah surprise <b>February 14th</b> ko khulega. ❤️`);
-            return;
-        }
-
+        // --- DATE LOCKING REMOVED ---
         currentP = item.p; 
         if(item.song) {
             audio.src = item.song;
-            audio.play();
+            audio.play().catch(e => console.log("Audio play deferred"));
         }
 
         document.getElementById('theater').style.display = 'flex';
@@ -180,9 +140,13 @@
                 <h1 style="color:var(--gold); font-family:'Playfair Display';">My Heart to Yours</h1>
                 ${mediaHtml}
                 <div class="letter-paper">
-                    Dearest Wifey,<br><br>
-                    You are the most beautiful part of my life. [Your message here...]<br><br>
-                    Yours Forever.
+                    Dearest Wifey💕,<br><br>
+                    Meri life ka aap bohut khubsurat part ho joh mai chahta hu kabhi nahi khtm ho aur naa hi hoga 🤞, aapke bina mai bilkul akela sa padh jta hu🥺. Haa mai bohut insecure hu, jealous hota hu, ghussa karta hu, prr betu yeah sabh isiliye kyuki mai aapse usse jyda pyaar karta hu, care karta hu, fikar karta hu🥺♥️. Mai pura try karta hu aapko special feel karwane ka aur aage bhi karta rahunga bhale voh humari shaadi se phele ho, shaadi ke baad, pregnancy ke time ho yaa budape m aap meri humesha princess rahogi 😘♥️.
+Aap bohut jyda acche ho, beautiful ho, meri ini care karte ho, samjhte ho, mujhe samjhate ho, sambhalte ho, ghr sambhalte ho overall aap perfect ho 🥰, haa bss thodi chie aapki mummy wali hai uska kuch nahi kar sakte hai🤭❤️ .Mai bohut lucky hu ki aap meri life m ho aur humesha hi pray karta hu ki aap raho😙, Aur hum aese hi ekh dusre ki strength bane🤗.
+Thank you betu for everything🥹♥️
+I LOVE YOU SO MUCH WIFU😙♥️
+MUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA😘 <br><br>
+                    Yours Cutu.
                 </div>`;
         } else {
             document.getElementById('t-content').innerHTML = `
@@ -190,16 +154,6 @@
                 ${mediaHtml}
                 <p style="font-size:1.1rem; line-height:1.6; padding-bottom:30px;">${item.msg}</p>`;
         }
-    }
-
-    function showLockedMsg(msg) {
-        document.getElementById('theater').style.display = 'flex';
-        document.getElementById('t-content').innerHTML = `
-            <div class="patience-msg">
-                <span style="font-size:3.5rem;">🔒</span>
-                <h2 style="color:var(--gold); font-family:'Playfair Display';">Patience, Wifu!</h2>
-                <p style="opacity:0.8; line-height:1.6;">${msg}</p>
-            </div>`;
     }
 
     function closeDay() { 
