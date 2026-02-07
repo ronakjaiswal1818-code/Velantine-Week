@@ -43,7 +43,7 @@
         .grid-item span { font-size: 1.8rem; }
         .grid-item small { color: var(--gold); font-size: 0.65rem; letter-spacing: 2px; margin-top: 8px; text-transform: uppercase; font-weight: 600; }
 
-        /* --- THEATER MODE (POPUP) --- */
+        /* --- THEATER MODE --- */
         #theater {
             position: fixed; inset: 0; z-index: 2000; background: #000;
             display: none; flex-direction: column; align-items: center;
@@ -52,16 +52,9 @@
         .close-theater { position: fixed; top: 15px; right: 20px; font-size: 3.5rem; color: var(--gold); background: none; border: none; z-index: 2100; cursor: pointer; line-height: 1; }
         
         .memory-media {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            max-height: 70vh;
-            border-radius: 15px;
-            border: 1px solid var(--gold);
-            margin: 60px 0 20px 0;
-            object-fit: contain; /* Full image visible, no cropping */
-            display: block;
-            background: #000;
+            width: 100%; max-width: 100%; height: auto; max-height: 70vh;
+            border-radius: 15px; border: 1px solid var(--gold);
+            margin: 60px 0 20px 0; object-fit: contain; display: block; background: #000;
         }
 
         .letter-paper {
@@ -70,6 +63,8 @@
             font-size: 1.4rem; line-height: 1.6; text-align: left;
             border-left: 6px solid var(--gold); margin-bottom: 40px;
         }
+
+        .patience-msg { padding: 50px 20px; border: 1px dashed var(--gold); border-radius: 25px; margin-top: 60px; }
 
         #preload-cache { display: none; }
     </style>
@@ -139,7 +134,7 @@
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('ui').style.display = 'flex';
             audio.src = "Perfect.mp3";
-            audio.play().catch(e => console.log("User must interact first"));
+            audio.play().catch(e => {});
         }
     }
 
@@ -153,15 +148,20 @@
     });
 
     function openDay(item) {
-        // Unlock logic (Commented out for your testing)
-        /*
         const today = new Date();
+        const isFeb = (today.getMonth() === 1); 
         const currentDay = today.getDate();
-        if (item.d !== "Letter" && currentDay < item.d) {
-            alert("Come back on February " + item.d);
+
+        // --- DATE LOCKING LOGIC ---
+        if (item.d !== "Letter" && (!isFeb || currentDay < item.d)) {
+            showLockedMsg(`Come back on <b>February ${item.d}</b> to unlock this memory Jannu. ❤️`);
             return;
         }
-        */
+
+        if (item.isLetter && (!isFeb || currentDay < 14)) {
+            showLockedMsg(`Thoda sa wait karo Bubu. <br> Yeah surprise <b>February 14th</b> ko khulega. ❤️`);
+            return;
+        }
 
         currentP = item.p; 
         if(item.song) {
@@ -190,6 +190,16 @@
                 ${mediaHtml}
                 <p style="font-size:1.1rem; line-height:1.6; padding-bottom:30px;">${item.msg}</p>`;
         }
+    }
+
+    function showLockedMsg(msg) {
+        document.getElementById('theater').style.display = 'flex';
+        document.getElementById('t-content').innerHTML = `
+            <div class="patience-msg">
+                <span style="font-size:3.5rem;">🔒</span>
+                <h2 style="color:var(--gold); font-family:'Playfair Display';">Patience, Wifu!</h2>
+                <p style="opacity:0.8; line-height:1.6;">${msg}</p>
+            </div>`;
     }
 
     function closeDay() { 
