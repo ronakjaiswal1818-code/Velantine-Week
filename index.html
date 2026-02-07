@@ -13,9 +13,21 @@
 
         #canvas-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
+        /* --- AUTH SCREEN --- */
+        #auth-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .lock-card { text-align: center; padding: 30px; border: 1px solid var(--gold); border-radius: 30px; background: rgba(255,255,255,0.02); width: 85%; max-width: 350px; }
+        
+        #pass { 
+            background: rgba(255,255,255,0.1); border: 1px solid var(--gold); border-radius: 15px;
+            color: white; text-align: center; font-size: 2rem; outline: none; width: 180px; 
+            margin: 20px 0; letter-spacing: 8px; padding: 10px; -webkit-appearance: none;
+        }
+
         /* --- DASHBOARD --- */
-        /* Changed display to flex so it shows immediately */
-        .dashboard { position: relative; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .dashboard { position: relative; z-index: 10; min-height: 100vh; display: none; flex-direction: column; align-items: center; padding: 40px 20px; }
         
         .hero-text { text-align: center; margin-bottom: 30px; }
         .hero-text h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 2.2rem; margin: 0; }
@@ -52,14 +64,25 @@
             border-left: 6px solid var(--gold); margin-bottom: 40px;
         }
 
+        .patience-msg { padding: 50px 20px; border: 1px dashed var(--gold); border-radius: 25px; margin-top: 60px; }
+
         #preload-cache { display: none; }
     </style>
 </head>
-<body onload="init()">
+<body>
 
 <canvas id="canvas-particles"></canvas>
 <audio id="main-track" loop playsinline webkit-playsinline></audio>
 <div id="preload-cache"></div>
+
+<div id="auth-overlay">
+    <div class="lock-card">
+        <h2 style="font-family:'Playfair Display'; color:var(--gold); margin:0;">Locked for Wifey</h2>
+        <p style="font-size: 0.6rem; letter-spacing: 2px; opacity: 0.7; margin-top: 10px;">ENTER OUR MEETING DATE (DDMM)</p>
+        <input type="password" id="pass" placeholder="••••" maxlength="4" pattern="\d*" inputmode="numeric" oninput="checkPass(this)">
+        <p id="error-msg" style="color: #ff4d4d; font-size: 0.7rem; margin-top: 10px; opacity: 0;"></p>
+    </div>
+</div>
 
 <div class="dashboard" id="ui">
     <div class="hero-text">
@@ -90,13 +113,6 @@
     const audio = document.getElementById('main-track');
     let currentP = '❤️'; 
 
-    // Function to run on page load
-    function init() {
-        startPreload();
-        audio.src = "Perfect.mp3";
-        // Note: Autoplay might be blocked by browsers until user interacts with the page
-    }
-
     function startPreload() {
         const cache = document.getElementById('preload-cache');
         days.forEach(item => {
@@ -112,6 +128,16 @@
         });
     }
 
+    function checkPass(el) {
+        if(el.value === "2205") { 
+            startPreload();
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('ui').style.display = 'flex';
+            audio.src = "Perfect.mp3";
+            audio.play().catch(e => {});
+        }
+    }
+
     const menu = document.getElementById('menu');
     days.forEach(item => {
         const div = document.createElement('div');
@@ -122,11 +148,25 @@
     });
 
     function openDay(item) {
-        // --- DATE LOCKING REMOVED ---
+        const today = new Date();
+        const isFeb = (today.getMonth() === 1); 
+        const currentDay = today.getDate();
+
+        // --- DATE LOCKING LOGIC ---
+        if (item.d !== "Letter" && (!isFeb || currentDay < item.d)) {
+            showLockedMsg(`Come back on <b>February ${item.d}</b> to unlock this memory Jannu. ❤️`);
+            return;
+        }
+
+        if (item.isLetter && (!isFeb || currentDay < 14)) {
+            showLockedMsg(`Thoda sa wait karo Bubu. <br> Yeah surprise <b>February 14th</b> ko khulega. ❤️`);
+            return;
+        }
+
         currentP = item.p; 
         if(item.song) {
             audio.src = item.song;
-            audio.play().catch(e => console.log("Audio play deferred"));
+            audio.play();
         }
 
         document.getElementById('theater').style.display = 'flex';
@@ -145,7 +185,7 @@
 Aap bohut jyda acche ho, beautiful ho, meri ini care karte ho, samjhte ho, mujhe samjhate ho, sambhalte ho, ghr sambhalte ho overall aap perfect ho 🥰, haa bss thodi chie aapki mummy wali hai uska kuch nahi kar sakte hai🤭❤️ .Mai bohut lucky hu ki aap meri life m ho aur humesha hi pray karta hu ki aap raho😙, Aur hum aese hi ekh dusre ki strength bane🤗.
 Thank you betu for everything🥹♥️
 I LOVE YOU SO MUCH WIFU😙♥️
-MUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA😘 <br><br>
+MUAAAAAAAAAAAAAAAAAAAAAAAAA😘 <br><br>
                     Yours Cutu.
                 </div>`;
         } else {
@@ -154,6 +194,16 @@ MUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA😘 <br><br>
                 ${mediaHtml}
                 <p style="font-size:1.1rem; line-height:1.6; padding-bottom:30px;">${item.msg}</p>`;
         }
+    }
+
+    function showLockedMsg(msg) {
+        document.getElementById('theater').style.display = 'flex';
+        document.getElementById('t-content').innerHTML = `
+            <div class="patience-msg">
+                <span style="font-size:3.5rem;">🔒</span>
+                <h2 style="color:var(--gold); font-family:'Playfair Display';">Patience, Wifu!</h2>
+                <p style="opacity:0.8; line-height:1.6;">${msg}</p>
+            </div>`;
     }
 
     function closeDay() { 
