@@ -11,7 +11,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; background: #000; font-family: 'Poppins', sans-serif; color: white; overflow-x: hidden; width: 100%; height: 100%; }
 
-        /* Floating Animation Background */
         #canvas-particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
 
         /* --- AUTH SCREEN --- */
@@ -37,9 +36,9 @@
         .grid-item {
             background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
             height: 110px; border-radius: 20px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; cursor: pointer;
+            justify-content: center; align-items: center; cursor: pointer; transition: 0.2s;
         }
-        .grid-item:active { background: rgba(197, 160, 89, 0.1); }
+        .grid-item:active { transform: scale(0.95); background: rgba(197, 160, 89, 0.1); }
         .grid-item.special { grid-column: span 2; height: 130px; border: 1px solid var(--gold); background: rgba(197, 160, 89, 0.05); }
         .grid-item span { font-size: 1.8rem; }
         .grid-item small { color: var(--gold); font-size: 0.65rem; letter-spacing: 2px; margin-top: 8px; text-transform: uppercase; font-weight: 600; }
@@ -50,18 +49,19 @@
             display: none; flex-direction: column; align-items: center;
             padding: 20px; text-align: center; overflow-y: auto;
         }
-        .close-theater { position: fixed; top: 15px; right: 20px; font-size: 3rem; color: var(--gold); background: none; border: none; z-index: 2100; cursor: pointer; line-height: 1; }
+        .close-theater { position: fixed; top: 15px; right: 20px; font-size: 3.5rem; color: var(--gold); background: none; border: none; z-index: 2100; cursor: pointer; line-height: 1; }
         
-        /* ORIGINAL SIZE & QUALITY FIX */
         .memory-media {
             width: 100%;
             max-width: 100%;
             height: auto;
-            border-radius: 12px;
+            max-height: 70vh;
+            border-radius: 15px;
             border: 1px solid var(--gold);
             margin: 60px 0 20px 0;
-            object-fit: contain; /* Ensures original aspect ratio */
+            object-fit: contain; /* Full image visible, no cropping */
             display: block;
+            background: #000;
         }
 
         .letter-paper {
@@ -70,16 +70,20 @@
             font-size: 1.4rem; line-height: 1.6; text-align: left;
             border-left: 6px solid var(--gold); margin-bottom: 40px;
         }
+
+        #preload-cache { display: none; }
     </style>
 </head>
 <body>
 
 <canvas id="canvas-particles"></canvas>
 <audio id="main-track" loop playsinline webkit-playsinline></audio>
+<div id="preload-cache"></div>
 
 <div id="auth-overlay">
     <div class="lock-card">
         <h2 style="font-family:'Playfair Display'; color:var(--gold); margin:0;">Locked for Wifey</h2>
+        <p style="font-size: 0.6rem; letter-spacing: 2px; opacity: 0.7; margin-top: 10px;">ENTER OUR MEETING DATE (DDMM)</p>
         <input type="password" id="pass" placeholder="••••" maxlength="4" pattern="\d*" inputmode="numeric" oninput="checkPass(this)">
         <p id="error-msg" style="color: #ff4d4d; font-size: 0.7rem; margin-top: 10px; opacity: 0;"></p>
     </div>
@@ -99,7 +103,6 @@
 </div>
 
 <script>
-    // --- DATABASE ---
     const days = [
         { d: 7, n: "Rose Day", i: "🌹", p: "🌹", msg: "Happy Rose Day betu, haa mai itna khass toh nahi hu fool hu prr kya aap mera fhul accept karoge, humesha khush rakhne ki koshish karunga, haa thoda ghussa wala insaan hu prr khayal bhi utna hi rakhunga aapka 🥺❤️", media: "Rose.mp4.mp4", type: "video", song: "Rose.mp3" },
         { d: 8, n: "Propose Day", i: "💍", p: "💍", msg: "I'd ask a million times, and I'd hope for a million 'Yes's.", media: "Ring.mp4", type: "video", song: "Propose.mp3" },
@@ -108,19 +111,35 @@
         { d: 11, n: "Promise Day", i: "🤝", p: "🤝", msg: "I promise to be your home, no matter where we are.", media: "Promise.jpg", type: "img", song: "Promise.mp3" },
         { d: 12, n: "Hug Day", i: "🫂", p: "🫂", msg: "The only place where the world finally makes sense.", media: "Hug.jpg", type: "img", song: "Hug.mp3" },
         { d: 13, n: "Kiss Day", i: "💋", p: "💋", msg: "A silent language of a thousand emotions.", media: "Kiss.jpg", type: "img", song: "Kiss.mp3" },
-        { d: 14, n: "Valentine's Day", i: "❤️", p: "❤️", msg: "To my future wife: My today, my tomorrow, my forever.", media: "Valentine.mp4", type: "video", song: "Velantine.mp3" },
+        { d: 14, n: "Valentine's Day", i: "❤️", p: "❤️", msg: "To my future wife: My today, my tomorrow, my forever.", media: "Valentine.jpg", type: "video", song: "Velantine.mp3" },
         { d: "Letter", n: "The Final Letter", i: "✉️", p: "💌", isLetter: true, media: "Us.jpg", type: "img", song: "Perfect.mp3" }
     ];
 
     const audio = document.getElementById('main-track');
     let currentP = '❤️'; 
 
+    function startPreload() {
+        const cache = document.getElementById('preload-cache');
+        days.forEach(item => {
+            if (item.type === 'video') {
+                const v = document.createElement('video');
+                v.src = item.media;
+                v.preload = "auto";
+                cache.appendChild(v);
+            } else {
+                const img = new Image();
+                img.src = item.media;
+            }
+        });
+    }
+
     function checkPass(el) {
         if(el.value === "2205") { 
+            startPreload();
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('ui').style.display = 'flex';
             audio.src = "Perfect.mp3";
-            audio.play().catch(e => console.log("Audio started"));
+            audio.play().catch(e => console.log("User must interact first"));
         }
     }
 
@@ -134,12 +153,12 @@
     });
 
     function openDay(item) {
-        // --- LOCK PART DISABLED FOR TESTING ---
+        // Unlock logic (Commented out for your testing)
         /*
         const today = new Date();
         const currentDay = today.getDate();
         if (item.d !== "Letter" && currentDay < item.d) {
-            alert("Wait until " + item.d + " February!");
+            alert("Come back on February " + item.d);
             return;
         }
         */
@@ -151,7 +170,7 @@
         }
 
         document.getElementById('theater').style.display = 'flex';
-
+        
         let mediaHtml = item.type === 'video' ? 
             `<video src="${item.media}" class="memory-media" autoplay loop muted playsinline webkit-playsinline preload="auto"></video>` : 
             `<img src="${item.media}" class="memory-media">`;
@@ -162,12 +181,12 @@
                 ${mediaHtml}
                 <div class="letter-paper">
                     Dearest Wifey,<br><br>
-                    Write your personal message here...<br><br>
+                    You are the most beautiful part of my life. [Your message here...]<br><br>
                     Yours Forever.
                 </div>`;
         } else {
             document.getElementById('t-content').innerHTML = `
-                <h1 style="color:var(--gold); font-family:'Playfair Display'; margin-top:20px;">${item.n}</h1>
+                <h1 style="color:var(--gold); font-family:'Playfair Display'; margin-top:10px;">${item.n}</h1>
                 ${mediaHtml}
                 <p style="font-size:1.1rem; line-height:1.6; padding-bottom:30px;">${item.msg}</p>`;
         }
@@ -180,7 +199,6 @@
         currentP = '❤️'; 
     }
 
-    // --- PARTICLE BACKGROUND ---
     const canvas = document.getElementById('canvas-particles');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -206,7 +224,7 @@
             if(this.y < -50) this.reset(); 
         }
     }
-    for(let i=0; i<30; i++) particles.push(new Particle());
+    for(let i=0; i<25; i++) particles.push(new Particle());
     function animate() { 
         ctx.clearRect(0, 0, canvas.width, canvas.height); 
         ctx.fillStyle = "white";
